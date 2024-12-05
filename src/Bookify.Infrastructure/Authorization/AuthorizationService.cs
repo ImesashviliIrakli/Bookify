@@ -3,18 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Bookify.Infrastructure.Authorization;
 
-internal sealed class AuthorizationService
+internal sealed class AuthorizationService(ApplicationDbContext context)
 {
-    private readonly ApplicationDbContext _dbContext;
-
-    public AuthorizationService(ApplicationDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<UserRolesResponse> GetRolesForUserAsync(string identityId)
     {
-        var roles = await _dbContext.Set<User>()
+        var roles = await _context.Set<User>()
             .Where(u => u.IdentityId == identityId)
             .Select(u => new UserRolesResponse
             {
@@ -28,7 +23,7 @@ internal sealed class AuthorizationService
 
     public async Task<HashSet<string>> GetPermissionsForUserAsync(string identityId)
     {
-        var permissions = await _dbContext.Set<User>()
+        var permissions = await _context.Set<User>()
             .Where(u => u.IdentityId == identityId)
             .SelectMany(u => u.Roles.Select(r => r.Permissions))
             .FirstAsync();
